@@ -2,33 +2,37 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { nanoid } from "nanoid";
 import { Todo } from "../../types";
 
-const initialState: Todo[] = [
-  {
-    id: nanoid(),
-    desc: "Learn Redux Toolkit",
-    isComplete: false,
-  },
-  {
-    id: nanoid(),
-    desc: "Learn React",
-    isComplete: true,
-  },
-  {
-    id: nanoid(),
-    desc: "Learn Redux",
-    isComplete: true,
-  },
-];
+const initialState = {
+  todos: [
+    {
+      id: nanoid(),
+      desc: "Learn Redux Toolkit",
+      isComplete: false,
+    },
+    {
+      id: nanoid(),
+      desc: "Learn React",
+      isComplete: true,
+    },
+    {
+      id: nanoid(),
+      desc: "Learn Redux",
+      isComplete: true,
+    },
+  ] as Todo[],
+  selectedTodo: null as Todo | null,
+};
 
 export const todosSlice = createSlice({
   name: "todos",
   initialState,
   reducers: {
     update: (state, { payload }: PayloadAction<Omit<Todo, "isComplete">>) => {
-      const targetTodo = state.find((todo) => todo.id === payload.id);
+      const targetTodo = state.todos.find((todo) => todo.id === payload.id);
 
       if (targetTodo) {
         targetTodo.desc = payload.desc;
+        state.selectedTodo = targetTodo;
       }
     },
     //! non-pure way
@@ -38,7 +42,7 @@ export const todosSlice = createSlice({
     //! pure way
     create: {
       reducer: (state, { payload }: PayloadAction<Todo>) => {
-        state.push(payload);
+        state.todos.push(payload);
       },
       prepare: (desc: string) => ({
         payload: {
@@ -49,18 +53,25 @@ export const todosSlice = createSlice({
       }),
     },
     toggle: (state, { payload: id }: PayloadAction<Todo["id"]>) => {
-      const targetTodo = state.find((todo) => todo.id === id);
+      const targetTodo = state.todos.find((todo) => todo.id === id);
 
       if (targetTodo) {
         targetTodo.isComplete = !targetTodo.isComplete;
+        state.selectedTodo = targetTodo;
       }
     },
     remove: (state, { payload }: PayloadAction<Todo["id"]>) => {
-      const index = state.findIndex((todo) => todo.id === payload);
+      const index = state.todos.findIndex((todo) => todo.id === payload);
 
       if (index !== -1) {
-        state.splice(index, 1);
+        state.todos.splice(index, 1);
+        state.selectedTodo = null;
       }
+    },
+    select: (state, { payload }: PayloadAction<Todo["id"]>) => {
+      const selectedTodo = state.todos.find((todo) => todo.id === payload);
+
+      state.selectedTodo = selectedTodo || null;
     },
   },
 });
